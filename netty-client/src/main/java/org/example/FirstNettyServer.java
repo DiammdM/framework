@@ -17,42 +17,52 @@ import java.util.Date;
  */
 public class FirstNettyServer {
   public static void main(String[] args) throws InterruptedException {
-    // 创建服务端启动引导器
-    ServerBootstrap bootstrap = new ServerBootstrap();
 
-    // 配置线程模型
-    bootstrap.group(new NioEventLoopGroup());
+    // 创建线程组
+    NioEventLoopGroup nioEventLoopGroup = new NioEventLoopGroup();
+    try {
+      // 创建服务端启动引导器
+      ServerBootstrap bootstrap = new ServerBootstrap();
 
-    // 指定服务端的线程模型
-    bootstrap.channel(NioServerSocketChannel.class);
+      // 配置线程模型
+      bootstrap.group(new NioEventLoopGroup());
 
-    // 定义处理器
-    bootstrap.childHandler(
-            new ChannelInitializer<NioSocketChannel>() {
-              @Override
-              protected void initChannel(NioSocketChannel ch) throws Exception {
+      // 指定服务端的线程模型
+      bootstrap.channel(NioServerSocketChannel.class);
 
-                ch.pipeline().addLast(new StringDecoder());
+      // 定义处理器
+      bootstrap.childHandler(
+              new ChannelInitializer<NioSocketChannel>() {
+                @Override
+                protected void initChannel(NioSocketChannel ch) throws Exception {
 
-                ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
-                  @Override
-                  public void channelActive(ChannelHandlerContext ctx) throws Exception {
-                    System.out.println(ctx.channel() + ",hello world!");
-                  }
+                  ch.pipeline().addLast(new StringDecoder());
 
-                  @Override
-                  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                    System.out.println(new Date() + "," + msg);
-                  }
-                });
-              }
-            });
+                  ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
+                    @Override
+                    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                      System.out.println(ctx.channel() + ",hello world!");
+                    }
 
-    // 绑定端口
-    ChannelFuture channelFuture = bootstrap.bind(8081).sync();
+                    @Override
+                    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                      System.out.println(new Date() + "," + msg);
+                    }
+                  });
+                }
+              });
 
-    // 监听关闭事件
-    ChannelFuture closeFuture = channelFuture.channel().closeFuture();
-    closeFuture.sync();
+      // 绑定端口
+      ChannelFuture channelFuture = bootstrap.bind(8081).sync();
+
+      // 监听关闭事件
+      ChannelFuture closeFuture = channelFuture.channel().closeFuture();
+      closeFuture.sync();
+
+    } catch (java.lang.Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      nioEventLoopGroup.shutdownGracefully();
+    }
   }
 }
